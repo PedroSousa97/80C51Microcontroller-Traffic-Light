@@ -1,0 +1,3 @@
+".\Objects\C_Program.obj" 
+TO ".\Objects\Gestão_semáforos_C" 
+PRINT(".\Listings\Gestão_semáforos_C.m51")

@@ -1,0 +1,240 @@
+A51 MACRO ASSEMBLER  ASSEMBLY_SEMAFOROS                                                   05/31/2020 18:24:25 PAGE     1
+
+
+MACRO ASSEMBLER A51 V8.2.7.0
+OBJECT MODULE PLACED IN .\Objects\Assembly_semaforos.obj
+ASSEMBLER INVOKED BY: D:\C51\BIN\A51.EXE Assembly_semaforos.a51 SET(SMALL) DEBUG PRINT(.\Listings\Assembly_semaforos.lst
+                      ) OBJECT(.\Objects\Assembly_semaforos.obj) EP
+
+LOC  OBJ            LINE     SOURCE
+
+                       1     ;Notas gerais:
+                       2     ;timer0 e timer1 irão funcionar no modo1 (16bits sem autoreload) 
+                       3     ;1 contagem = 1us, 10000 contagens = 10000us = 10ms,1000ms = 1s, ou seja 100*10ms
+                       4     ;10000d = 0x2710h
+                       5     ;65536-1000 = 55536d = D8F0H -> Valor de configuração inicial dos temporizadores para poder
+                              contar 10ms. 
+                       6     
+                       7     
+                       8     
+                       9     ;Definição de constantes
+  00F0                10     TempoL                                  EQU     0xF0            ;Constante utilizada para i
+                             niciar e reiniciar o Timer (lower Byte)
+  00D8                11     TempoH                                  EQU 0xD8                ;Constante utilizada para i
+                             niciar e reiniciar o Timer (Higher Byte)
+  0064                12     Contagens_Por_segundo   EQU 0x64                ;Constante correspondente ao número de cont
+                             agens de 10ms para contar 1 segundo 100 = 64H
+  00B0                13     PortIn                                  EQU P3                  ;Pins de entrada onde irá c
+                             onter o botão B3
+  00B2                14     PortIn_B3                               EQU P3.2                ;Pin individual do Botão B3
+  0090                15     PortOut_S1_S2                   EQU P1                  ;Pins de saída onde irá conter os s
+                             emáforos S1 e S2
+  00A0                16     PortOut_S3_P3                   EQU P2                  ;Pins de saída onde irá conter os s
+                             emáforos S3 e P3
+  00A3                17     PortOut_P3_VERDE                EQU P2.3                ;Pin individual da luz verde do sem
+                             áforo dos peões, utilizado para criar intermitência
+                      18             
+                      19     ;Registos:
+                      20     ;R0 -> Vai conter o valor de contagens de 10ms necessárias para contar mais um segundo.
+                      21     ;R1 -> Representa o estado de s1 e s2, se s1 e s2 estiverem amarelos R1 = 1
+                      22     ;R2 -> B3
+                      23     ;R3 -> Valor a ser enviado para PortOut_S1_S2
+                      24     ;R4 -> Valor a ser enviado para PortOut_S3_P3
+                      25     ;A -> segundos passados
+                      26     
+                      27     ;Depois do reset
+----                  28     CSEG AT 0000H
+0000 804E             29             JMP Inicio
+                      30             
+                      31     ;Se ocorrer interrupção externa 0 pelo botão b3
+----                  32     CSEG AT 0003H
+0003 01BA             33             JMP InterruptExt0
+                      34             
+                      35     ;Se ocorrer interrupção temporizador 1 pelo botão b3
+----                  36     CSEG AT 000BH
+000B 01BD             37             JMP InterruptTemp0
+                      38     
+                      39             
+                      40     ;Inicia programa
+----                  41     CSEG AT 0050H
+0050                  42             Inicio:
+0050 758107           43                     MOV SP, #7
+0053 1192             44                     CALL Inicializacoes                     ;Chama inicializações e ativações
+0055 11A8             45                     CALL Ativa_interrupcoes
+0057 11AE             46                     CALL Ativa_Timers
+                      47             ;Programa principal (ciclo infinito de funcionamento dos semáforos)
+0059                  48             Inicio_ciclo_infinito:
+0059 740A             49                     MOV A, #10                                      ;Reinicia o acumulador, uti
+A51 MACRO ASSEMBLER  ASSEMBLY_SEMAFOROS                                                   05/31/2020 18:24:25 PAGE     2
+
+                             lizado para guardar segundos passados
+005B                  50             Ciclo_S1_S2:                                    ;Ciclo de S1 e S2 verdes
+005B 7BDB             51                     MOV R3, #0xdb                           ;Guarda em R3 e R4 o valor a ser en
+                             viado para P1 e P2 respetivamente
+005D 7CF3             52                     MOV R4, #0xf3                           ;S1, S2 e P3 verdes, S3 Vermelho
+005F 8B90             53                     MOV PortOut_S1_S2, R3           ;Coloca na Saída P1 o valor de R3
+0061 8CA0             54                     MOV PortOut_S3_P3, R4           ;Coloca na Saída P1 o valor de R4
+0063 70F6             55                     JNZ Ciclo_S1_S2                         ;Enquando Acumulador != 0, continua
+                              preso neste ciclo, o que significa que ainda não passou 10 segundos
+0065 7405             56                     MOV A, #5                                       ;Reinicia acumulador para o
+                             s 5 segundos do amarelo de S1 e S2
+0067 7901             57                     MOV R1, #1                                      ;R1 = 1 indica que S1 e S2 
+                             irão ficar amarelos e inicia a intermitência de P3
+0069                  58             Ciclo_S1_S2_Amarelo:                    ;S1 e S2 amarelos e P3 intermitente (a inte
+                             rmitencia é criada na interrupção do timer0)
+0069 7BED             59                     MOV R3, #0xed                           ;Guarda em R3 e R4 o valor a ser en
+                             viado para P1 e P2 respetivamente
+006B 7CF3             60                     MOV R4, #0xf3
+006D 8B90             61                     MOV PortOut_S1_S2, R3           ;Coloca na Saída P1 o valor de R3
+006F 8CA0             62                     MOV PortOut_S3_P3, R4           ;Coloca na Saída P1 o valor de R4
+0071 70F6             63                     JNZ Ciclo_S1_S2_Amarelo         ;Enquando Acumulador != 0, continua preso n
+                             este ciclo, o que significa que ainda não passou 5 segundos
+0073 740A             64                     MOV A, #10                                      ;Reinicia acumulador para o
+                             s 10 segundos de S3 a verde
+0075 7900             65                     MOV R1, #0                                      ;R1 = 0 indica que S1 e S2 
+                             já não estão mais a amarelo, logo acaba intermitencia de P3
+0077                  66             Ciclo_S3:                                               ;S3 Verde, restantes a verm
+                             elho
+0077 7BF6             67                     MOV R3, #0xf6
+0079 7CEE             68                     MOV R4, #0xee
+007B 8B90             69                     MOV PortOut_S1_S2, R3           ;Coloca na Saída P1 o valor de R3
+007D 8CA0             70                     MOV PortOut_S3_P3, R4           ;Coloca na Saída P1 o valor de R4
+007F 30B202           71                     JNB PortIn_B3, Inicia_S3_amarelo        ;Verifica se o botão foi carregado,
+                              se for esse o caso salta para o ciclo de S3 amarelo
+0082 70F3             72                     JNZ Ciclo_S3                                            ;Caso contrário agu
+                             arda 10 segundos para então colocar S3 amarelo
+0084                  73             Inicia_S3_amarelo:
+0084 7405             74                     MOV A, #5                       ;Reinicia acumulador para os 5 segundos do 
+                             amarelo de S3
+0086                  75             S3_Amarelo:                                                             
+0086 7BF6             76                     MOV R3, #0xf6
+0088 7CED             77                     MOV R4, #0xed
+008A 8B90             78                     MOV PortOut_S1_S2, R3           ;Coloca na Saída P1 o valor de R3
+008C 8CA0             79                     MOV PortOut_S3_P3, R4           ;Coloca na Saída P1 o valor de R4
+008E 70F6             80                     JNZ S3_Amarelo                          ;Enquando Acumulador != 0, continua
+                              preso neste ciclo, o que significa que ainda não passou 5 segundos
+0090 80C7             81                     JMP Inicio_ciclo_infinito       ;Após o semáforo estar 5 segundos amarelo, 
+                             reinicia todo o ciclo
+                      82                     
+                      83             
+                      84             
+                      85     
+                      86     ;-------------------Rotinas---------------------------------
+                      87     
+                      88     ;-------------Rotina de inicializações----------------------
+0092                  89     Inicializacoes:
+0092 7864             90             MOV R0,#Contagens_Por_segundo                   ;Inicia registos R0 -> Vai conter o
+                              valor de contagens de 10ms necessárias para contar mais um segundo.                 
+0094 7AFB             91             MOV R2, #11111011b                                              ;Guarda em R3 o est
+                             ado de P3 com botão B3 = 0
+0096 7BFF             92             MOV R3, #0xff                                                   ;Apaga/Reinicia R3,
+                              registo que irá guardar os valores a enviar para P1
+0098 7CFF             93             MOV R4, #0xff                                                   ;Apaga/Reinicia R3,
+                              registo que irá guardar os valores a enviar para P1
+009A 7400             94             MOV A, #0                                                               ;Apaga/Rein
+                             icia o acomulador
+A51 MACRO ASSEMBLER  ASSEMBLY_SEMAFOROS                                                   05/31/2020 18:24:25 PAGE     3
+
+009C 75B0FF           95             MOV PortIn, #0xff                                               ;Apaga/Reinicia P3
+009F 8AB0             96             MOV PortIn, R2                                                  ;B3=0
+00A1 7590FF           97             MOV PortOut_S1_S2, #0xff                                ;Apaga/Reinicia P1
+00A4 75A0FF           98             MOV PortOut_S3_P3, #0xff                                ;Apaga/Reinicia P2
+00A7 22               99             RET
+                     100     
+                     101     ;------------Rotina ativa interrupções------------------------
+00A8                 102     Ativa_interrupcoes:                             ;Ativa interrupção externa 0 e timer 0
+00A8 75A883          103             MOV IE, #10000011b
+00AB D288            104             SETB IT0
+00AD 22              105             RET
+                     106             
+                     107     ;------------Rotina ativa timers-----------------------------
+00AE                 108     Ativa_Timers:                                   ;Configura timer no modo1 com valor inicial
+                              55536d como referido anteriormente para poder contar 10ms
+00AE 758901          109             MOV TMOD, #00000001b
+00B1 758AF0          110             MOV TL0, #TempoL
+00B4 758CD8          111             MOV TH0, #TempoH
+00B7 D28C            112             SETB TR0                                        ;Ativa Timer0
+00B9 22              113             RET
+                     114             
+                     115     ;-------------Tratamento de interrupções----------------------
+                     116     
+                     117     ;-----------Interrupção externa por botão B3------------------
+00BA                 118     InterruptExt0:                          ;Se ocorrer uma interrupçao externa SET bit do botã
+                             o B3
+00BA D2B2            119             SETB PortIn_B3
+00BC 32              120             RETI
+                     121     
+                     122     ;----------Interrupção por overflow do timer0----------------
+00BD                 123     InterruptTemp0:                                                 
+00BD 758AF0          124             MOV TL0, #TempoL                                        ;Se ocorrer interrupçao do 
+                             timer0 reinicia o valor inicial, pois o modo1 não tem auto-reload
+00C0 758CD8          125             MOV TH0, #TempoH
+00C3 D80D            126             DJNZ R0, FIM_Int_temp0                          ;Se o contador de ciclos for difere
+                             nte de 0, significa que ainda não contou um segundo então não realiza nenhuma operação
+00C5 B90106          127             CJNE R1, #1, Incrementa_normal          ;Se R1 não for igual a 1 (S1 e S2 não estão
+                              a amarelo) então decrementa os segundos normalmente no acumulador e reinicia contagem
+00C8 7864            128             MOV R0, #Contagens_Por_segundo          ;Se R1 = 1 (S1 e S2 amarelos), então além d
+                             e decrementar o acomulador e reiniciar a contagem, a cada segundo faz SETB da luz verde do semáforo P3
+00CA 14              129             DEC A                                                           ;Criando dessa form
+                             a a intermitência
+00CB D2A3            130             SETB PortOut_P3_VERDE
+00CD 32              131             RETI
+                     132             
+00CE                 133             Incrementa_normal:                                       
+00CE 7864            134             MOV R0, #Contagens_Por_segundo
+00D0 14              135             DEC A
+00D1 32              136             RETI
+00D2                 137             FIM_Int_temp0:           
+00D2 32              138             RETI
+                     139             
+                     140     
+                     141             
+                     142     END
+                                     
+                                             
+A51 MACRO ASSEMBLER  ASSEMBLY_SEMAFOROS                                                   05/31/2020 18:24:25 PAGE     4
+
+SYMBOL TABLE LISTING
+------ ----- -------
+
+
+N A M E                T Y P E  V A L U E   ATTRIBUTES
+
+ATIVA_INTERRUPCOES. .  C ADDR   00A8H   A   
+ATIVA_TIMERS. . . . .  C ADDR   00AEH   A   
+CICLO_S1_S2 . . . . .  C ADDR   005BH   A   
+CICLO_S1_S2_AMARELO .  C ADDR   0069H   A   
+CICLO_S3. . . . . . .  C ADDR   0077H   A   
+CONTAGENS_POR_SEGUNDO  N NUMB   0064H   A   
+FIM_INT_TEMP0 . . . .  C ADDR   00D2H   A   
+IE. . . . . . . . . .  D ADDR   00A8H   A   
+INCREMENTA_NORMAL . .  C ADDR   00CEH   A   
+INICIALIZACOES. . . .  C ADDR   0092H   A   
+INICIA_S3_AMARELO . .  C ADDR   0084H   A   
+INICIO. . . . . . . .  C ADDR   0050H   A   
+INICIO_CICLO_INFINITO  C ADDR   0059H   A   
+INTERRUPTEXT0 . . . .  C ADDR   00BAH   A   
+INTERRUPTTEMP0. . . .  C ADDR   00BDH   A   
+IT0 . . . . . . . . .  B ADDR   0088H.0 A   
+P1. . . . . . . . . .  D ADDR   0090H   A   
+P2. . . . . . . . . .  D ADDR   00A0H   A   
+P3. . . . . . . . . .  D ADDR   00B0H   A   
+PORTIN. . . . . . . .  D ADDR   00B0H   A   
+PORTIN_B3 . . . . . .  B ADDR   00B0H.2 A   
+PORTOUT_P3_VERDE. . .  B ADDR   00A0H.3 A   
+PORTOUT_S1_S2 . . . .  D ADDR   0090H   A   
+PORTOUT_S3_P3 . . . .  D ADDR   00A0H   A   
+S3_AMARELO. . . . . .  C ADDR   0086H   A   
+SP. . . . . . . . . .  D ADDR   0081H   A   
+TEMPOH. . . . . . . .  N NUMB   00D8H   A   
+TEMPOL. . . . . . . .  N NUMB   00F0H   A   
+TH0 . . . . . . . . .  D ADDR   008CH   A   
+TL0 . . . . . . . . .  D ADDR   008AH   A   
+TMOD. . . . . . . . .  D ADDR   0089H   A   
+TR0 . . . . . . . . .  B ADDR   0088H.4 A   
+
+
+REGISTER BANK(S) USED: 0 
+
+
+ASSEMBLY COMPLETE.  0 WARNING(S), 0 ERROR(S)

@@ -1,0 +1,150 @@
+BL51 BANKED LINKER/LOCATER V6.22.2.0                                                    05/31/2020  18:24:25  PAGE 1
+
+
+BL51 BANKED LINKER/LOCATER V6.22.2.0, INVOKED BY:
+D:\C51\BIN\BL51.EXE .\Objects\Assembly_semaforos.obj TO .\Objects\Assembly PRINT (.\Listings\Assembly.m51)
+
+
+INPUT MODULES INCLUDED:
+  .\Objects\Assembly_semaforos.obj (ASSEMBLY_SEMAFOROS)
+
+
+LINK MAP OF MODULE:  .\Objects\Assembly (ASSEMBLY_SEMAFOROS)
+
+
+            TYPE    BASE      LENGTH    RELOCATION   SEGMENT NAME
+            -----------------------------------------------------
+
+            * * * * * * *   D A T A   M E M O R Y   * * * * * * *
+            REG     0000H     0008H     ABSOLUTE     "REG BANK 0"
+
+            * * * * * * *   C O D E   M E M O R Y   * * * * * * *
+            CODE    0000H     0002H     ABSOLUTE     
+                    0002H     0001H                  *** GAP ***
+            CODE    0003H     0002H     ABSOLUTE     
+                    0005H     0006H                  *** GAP ***
+            CODE    000BH     0002H     ABSOLUTE     
+                    000DH     0043H                  *** GAP ***
+            CODE    0050H     0083H     ABSOLUTE     
+
+
+
+SYMBOL TABLE OF MODULE:  .\Objects\Assembly (ASSEMBLY_SEMAFOROS)
+
+  VALUE           TYPE          NAME
+  ----------------------------------
+
+  -------         MODULE        ASSEMBLY_SEMAFOROS
+  C:00A8H         SYMBOL        ATIVA_INTERRUPCOES
+  C:00AEH         SYMBOL        ATIVA_TIMERS
+  C:005BH         SYMBOL        CICLO_S1_S2
+  C:0069H         SYMBOL        CICLO_S1_S2_AMARELO
+  C:0077H         SYMBOL        CICLO_S3
+  N:0064H         SYMBOL        CONTAGENS_POR_SEGUNDO
+  C:00D2H         SYMBOL        FIM_INT_TEMP0
+  D:00A8H         SYMBOL        IE
+  C:00CEH         SYMBOL        INCREMENTA_NORMAL
+  C:0092H         SYMBOL        INICIALIZACOES
+  C:0084H         SYMBOL        INICIA_S3_AMARELO
+  C:0050H         SYMBOL        INICIO
+  C:0059H         SYMBOL        INICIO_CICLO_INFINITO
+  C:00BAH         SYMBOL        INTERRUPTEXT0
+  C:00BDH         SYMBOL        INTERRUPTTEMP0
+  B:0088H.0       SYMBOL        IT0
+  D:0090H         SYMBOL        P1
+  D:00A0H         SYMBOL        P2
+  D:00B0H         SYMBOL        P3
+  D:00B0H         SYMBOL        PORTIN
+  B:00B0H.2       SYMBOL        PORTIN_B3
+  B:00A0H.3       SYMBOL        PORTOUT_P3_VERDE
+  D:0090H         SYMBOL        PORTOUT_S1_S2
+  D:00A0H         SYMBOL        PORTOUT_S3_P3
+BL51 BANKED LINKER/LOCATER V6.22.2.0                                                  05/31/2020  18:24:25  PAGE 2
+
+
+  C:0086H         SYMBOL        S3_AMARELO
+  D:0081H         SYMBOL        SP
+  N:00D8H         SYMBOL        TEMPOH
+  N:00F0H         SYMBOL        TEMPOL
+  D:008CH         SYMBOL        TH0
+  D:008AH         SYMBOL        TL0
+  D:0089H         SYMBOL        TMOD
+  B:0088H.4       SYMBOL        TR0
+  C:0000H         LINE#         29
+  C:0003H         LINE#         33
+  C:000BH         LINE#         37
+  C:0050H         LINE#         43
+  C:0053H         LINE#         44
+  C:0055H         LINE#         45
+  C:0057H         LINE#         46
+  C:0059H         LINE#         49
+  C:005BH         LINE#         51
+  C:005DH         LINE#         52
+  C:005FH         LINE#         53
+  C:0061H         LINE#         54
+  C:0063H         LINE#         55
+  C:0065H         LINE#         56
+  C:0067H         LINE#         57
+  C:0069H         LINE#         59
+  C:006BH         LINE#         60
+  C:006DH         LINE#         61
+  C:006FH         LINE#         62
+  C:0071H         LINE#         63
+  C:0073H         LINE#         64
+  C:0075H         LINE#         65
+  C:0077H         LINE#         67
+  C:0079H         LINE#         68
+  C:007BH         LINE#         69
+  C:007DH         LINE#         70
+  C:007FH         LINE#         71
+  C:0082H         LINE#         72
+  C:0084H         LINE#         74
+  C:0086H         LINE#         76
+  C:0088H         LINE#         77
+  C:008AH         LINE#         78
+  C:008CH         LINE#         79
+  C:008EH         LINE#         80
+  C:0090H         LINE#         81
+  C:0092H         LINE#         90
+  C:0094H         LINE#         91
+  C:0096H         LINE#         92
+  C:0098H         LINE#         93
+  C:009AH         LINE#         94
+  C:009CH         LINE#         95
+  C:009FH         LINE#         96
+  C:00A1H         LINE#         97
+  C:00A4H         LINE#         98
+  C:00A7H         LINE#         99
+  C:00A8H         LINE#         103
+  C:00ABH         LINE#         104
+  C:00ADH         LINE#         105
+  C:00AEH         LINE#         109
+BL51 BANKED LINKER/LOCATER V6.22.2.0                                                  05/31/2020  18:24:25  PAGE 3
+
+
+  C:00B1H         LINE#         110
+  C:00B4H         LINE#         111
+  C:00B7H         LINE#         112
+  C:00B9H         LINE#         113
+  C:00BAH         LINE#         119
+  C:00BCH         LINE#         120
+  C:00BDH         LINE#         124
+  C:00C0H         LINE#         125
+  C:00C3H         LINE#         126
+  C:00C5H         LINE#         127
+  C:00C8H         LINE#         128
+  C:00CAH         LINE#         129
+  C:00CBH         LINE#         130
+  C:00CDH         LINE#         131
+  C:00CEH         LINE#         134
+  C:00D0H         LINE#         135
+  C:00D1H         LINE#         136
+  C:00D2H         LINE#         138
+  -------         ENDMOD        ASSEMBLY_SEMAFOROS
+
+******************************************************************************
+* RESTRICTED VERSION WITH 0800H BYTE CODE SIZE LIMIT; USED: 0089H BYTE ( 6%) *
+******************************************************************************
+
+Program Size: data=8.0 xdata=0 code=137
+LINK/LOCATE RUN COMPLETE.  0 WARNING(S),  0 ERROR(S)

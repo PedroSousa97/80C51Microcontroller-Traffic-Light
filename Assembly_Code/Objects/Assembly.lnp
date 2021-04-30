@@ -1,0 +1,3 @@
+".\Objects\Assembly_semaforos.obj" 
+TO ".\Objects\Assembly" 
+PRINT(".\Listings\Assembly.m51")

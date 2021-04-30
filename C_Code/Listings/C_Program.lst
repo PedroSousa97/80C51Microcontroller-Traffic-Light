@@ -1,0 +1,180 @@
+C51 COMPILER V9.60.0.0   C_PROGRAM                                                         05/31/2020 18:24:39 PAGE 1   
+
+
+C51 COMPILER V9.60.0.0, COMPILATION OF MODULE C_PROGRAM
+OBJECT MODULE PLACED IN .\Objects\C_Program.obj
+COMPILER INVOKED BY: D:\C51\BIN\C51.EXE C_Program.c OPTIMIZE(8,SPEED) BROWSE DEBUG OBJECTEXTEND PRINT(.\Listings\C_Progr
+                    -am.lst) TABS(2) OBJECT(.\Objects\C_Program.obj)
+
+line level    source
+
+   1          #include <reg51.h> 
+   2          
+   3          #define Tempo 5000      //Constante que corresponde ao número de contagens equivalentes a 1segundo (5000*200
+             -us = 1s)
+   4          
+   5          sbit P3_verde = P2^3;   //Pin correspondente à luz verde do semáforo dos peões
+   6          
+   7          bit botao = 0;    //Bit que será utilizado para detetar o click do botão B3
+   8          
+   9          unsigned long contador = 0;         //Contador que será utilizado para contar cada segundo utilizando o timer0
+  10          unsigned long contador_botao = 0;   //Contador que será utilizado para contar os 5 segundos de mudança de s
+             -inal quando o botão B3 é pressionado
+  11          int segundos = 0;                   //Contador de segundos
+  12          int segundos_botao = 0;             //contador de segundos para a luz amarela de s2 quando b3 é pressionado
+  13          int inicia = 1;                     //Variável usada para referenciar em que estado os semáforos se encontram
+  14          
+  15          
+  16          void Inicializacoes(void){
+  17   1        //Configração do registo IE
+  18   1        EA = 1;     //Enable global das interrupções
+  19   1        ET0 = 1;    //Enable do temporizador 0
+  20   1        ET1 = 1;    //Enable do temporizador 1
+  21   1        EX0 = 1;    //Enable da interrupção externa 0 (Botão B3)
+  22   1        
+  23   1        //Configuração do registo TMOD
+  24   1        TMOD &= 0x00;   //Coloca o TMOD todo a 0 para o poder configurar
+  25   1        TMOD |= 0x22;   //coloca o TMOD com configuração do timer0 e timer1 a funcionar no modo2 (8bits) com auto-
+             -reload
+  26   1        
+  27   1        //Configuração Timer0
+  28   1        TL0=0x38; // A funcionar no modo 2, os timers podem apenas representar valores com 8 bits -> 256 valor ma
+             -x
+  29   1        TH0=0x38; //timer0 -> 200us = 200 ciclos maquina de 1us. 256-200=56= 38H. Configuro desta forma o valor i
+             -nicial do timer (38H) para realizar as 200 contagens
+  30   1        
+  31   1        //Configuração Timer1
+  32   1        TL1=0x38; // A funcionar no modo 2, os timers podem apenas representar valores com 8 bits -> 256 valor ma
+             -x
+  33   1        TH1=0x38; //timer1 -> 200us = 200 ciclos maquina de 1us. 256-200=56= 38H. Configuro desta forma o valor i
+             -nicial do timer (38H) para realizar as 200 contagens
+  34   1        
+  35   1        //Configuração da Interrupção externa pelo botão
+  36   1        IT0 = 1;      //Interrupção0 ativa no falling edge
+  37   1      }
+  38          
+  39          
+  40          
+  41          void main (void){
+  42   1        P1 = 0xff;          //Coloca os outputs todos a 1
+  43   1        P2 = 0xff;          //Coloca os outputs todos a 1
+  44   1        
+  45   1        Inicializacoes();   //Chama função Inicializações para dar início à configuração dos registos
+  46   1        
+  47   1        while(1){                     //Loop infinito
+C51 COMPILER V9.60.0.0   C_PROGRAM                                                         05/31/2020 18:24:39 PAGE 2   
+
+  48   2            TR0 = 1;                  //Inicia temporizador0
+  49   2            TR1 = 1;                  //Inicia temporizador1
+  50   2            if (inicia == 1){         //Inicia estado 1 (S1 e S2 verdes)
+  51   3              while (segundos<=10){   //Durante 10s os semáforos terão a seguinte configuração: S1 e S2 verdes, S3 Ve
+             -rmelho e P3 Verde
+  52   4                P1 = 0xdb;
+  53   4                P2 = 0xf3;
+  54   4                botao = 0;                //coloca botao a 0 para evitar este ficar ligado até S3 ficar verde, ou seja, caso 
+             -S3 não esteja verde, o click do botão não faz nenhuma ação
+  55   4                if (contador == Tempo){   //Conta tempo, a cada 5000 contadores corresponde 1s
+  56   5                  segundos++;             //incrementa segundos
+  57   5                  contador = 0;           //reinicia o contador
+  58   5                }
+  59   4              }
+  60   3              inicia = 2;                 //Referencia próximo estado (S1 e S2 amarelos)
+  61   3              segundos = 0;               //Reinicia segundos para o próximo estado (S1 e S2 amarelos)
+  62   3            }
+  63   2            if (inicia == 2){             //Inicia estado 2 (S1 e S2 amarelo e P3 verde intermitente)
+  64   3              while (segundos<=5){        //Durante 5s os semáforos terão a seguinte configuração: S1 e S2 amarelos, S3 
+             -Vermelho e P3 Verde intermitente
+  65   4                P1 = 0xed;
+  66   4                P2 = 0xf3;
+  67   4                botao = 0;                //coloca botao a 0 para evitar este ficar ligado até S3 ficar verde, ou seja, caso 
+             -S3 não esteja verde, o click do botão não faz nenhuma ação
+  68   4                if (contador == Tempo){   //Conta tempo, a cada 5000 contadores corresponde 1s
+  69   5                  segundos++;             //incrementa segundos
+  70   5                  P3_verde = 1;           //A cada segundo que passa desliga a luz verde do semáforo dos peões por um insta
+             -nte criando o efeito de intermitência
+  71   5                  contador = 0;           //reinicia o contador
+  72   5                }
+  73   4              }
+  74   3              inicia = 3;                 //Referencia próximo estado (S1 e S2 vermelhos, S3 verde e P3 vermelho)
+  75   3              segundos = 0;               //Reinicia segundos para o próximo estado
+  76   3            }
+  77   2            if (inicia == 3){             //Inicia estado 3 (S1, S2 e P3 vermelhos e S3 verde)
+  78   3              while (segundos<=10){       //Durante 10s os semáforos terão a seguinte configuração: S1, S2 e P3 verdes,
+             - S3 Verde
+  79   4                P1 = 0xf6;                //Durante este período tenta também detetar o click do botão b3
+  80   4                P2 = 0xee;
+  81   4                if (botao == 1){          //se o botão for clicado a variável botao fica a 1
+  82   5                  contador_botao=0;                 //Reinicia o contador de tempo para o sinal amarelo de S3
+  83   5                  if (contador_botao == Tempo){     //Inicia a contagem dos 5 segundos em que o S3 deve ficar amarelo pa
+             -ra haver a mudança de sinal para peões
+  84   6                    segundos_botao++;
+  85   6                    contador_botao= 0;
+  86   6                  }
+  87   5                  if(segundos_botao <= 5){      //Durante 5 segundos S3 fica amarelo, o estado do botão é reiniciado e in
+             -icia agora referencia para o estado 1 (S1,S2 e P3 verdes e S3 vermelho)
+  88   6                    P2 = 0xed;
+  89   6                    botao = 0;
+  90   6                    inicia = 1;
+  91   6                  }
+  92   5                  break;
+  93   5                }
+  94   4                if (contador == Tempo){       //Conta tempo, a cada 5000 contadores corresponde 1s
+  95   5                segundos++;                   //incrementa segundos
+  96   5                contador = 0;                 //reinicia o contador
+  97   5                }
+  98   4              }
+  99   3              inicia = 4;                 //Referencia próximo estado (S1 e S2 vermelhos, S3 amarelo)
+ 100   3              segundos = 0;               //Reinicia segundos para o próximo estado
+ 101   3            }
+C51 COMPILER V9.60.0.0   C_PROGRAM                                                         05/31/2020 18:24:39 PAGE 3   
+
+ 102   2            if (inicia == 4){
+ 103   3              while (segundos<=5){        //Durante 5 segundos S3 fica amarelo até reiniciar todo o ciclo infinito
+ 104   4                P1 = 0xf6;
+ 105   4                P2 = 0xed;
+ 106   4                botao = 0;                //coloca botao a 0 para evitar este ficar ligado até S3 ficar verde, ou seja, caso 
+             -S3 não esteja verde, o click do botão não faz nenhuma ação
+ 107   4                if (contador == Tempo){   //Conta tempo, a cada 5000 contadores corresponde 1s
+ 108   5                segundos++;               //incrementa segundos
+ 109   5                contador = 0;             //reinicia o contador
+ 110   5                }
+ 111   4              }
+ 112   3              segundos = 0;               //Reinicia segundos para o próximo estado
+ 113   3              inicia = 1;                 //Referencia próximo estado (S1 e S2 verdes, S3 vermehlo e P3 verde), ou seja que 
+             -corresponde ao reiniciar deste ciclo infinito
+ 114   3            }
+ 115   2        }
+ 116   1      }
+ 117          
+ 118          void interrupt_botao(void) interrupt 0{     //Quando se dá uma interrupção externa 0, neste caso o click do 
+             -botão, a variável botao fica a 1
+ 119   1        
+ 120   1        if (botao == 0){
+ 121   2          botao = 1;
+ 122   2        }
+ 123   1        
+ 124   1      }
+ 125          
+ 126          void interrupt_timer0(void) interrupt 1{    //Como este modo é com auto-reload aqui só é necessário incremen
+             -tar o contador quando existe interrupção do timer por overflow, o mesmo reinicia automaticamente
+ 127   1        contador++;
+ 128   1      }
+ 129          
+ 130          void interrupt_timer1(void) interrupt 3{    //Como este modo é com auto-reload aqui só é necessário incremen
+             -tar o contador quando existe interrupção do timer por overflow, o mesmo reinicia automaticamente
+ 131   1        contador_botao++;
+ 132   1      }
+
+
+MODULE INFORMATION:   STATIC OVERLAYABLE
+   CODE SIZE        =    512    ----
+   CONSTANT SIZE    =   ----    ----
+   XDATA SIZE       =   ----    ----
+   PDATA SIZE       =   ----    ----
+   DATA SIZE        =     14    ----
+   IDATA SIZE       =   ----    ----
+   BIT SIZE         =      1    ----
+END OF MODULE INFORMATION.
+
+
+C51 COMPILATION COMPLETE.  0 WARNING(S),  0 ERROR(S)
